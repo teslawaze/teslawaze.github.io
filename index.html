@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CyberWaze • Waze for Cybertruck</title>
+    <title>CyberWaze • Waze for Tesla</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { margin: 0; padding: 0; background: #111; color: white; font-family: system-ui; overflow: hidden; }
@@ -61,29 +61,31 @@
 
     <script>
         const iframe = document.getElementById('waze-iframe');
-        let currentLat = 27.755; // Default near Wimauma, FL
+        let currentLat = 27.755;   // Default near Wimauma, FL
         let currentLon = -82.300;
+        let currentZoom = 16;      // ← Persisted zoom level (you can change default here)
         let watchId = null;
         let followEnabled = false;
         let lastUpdateTime = 0;
 
-        function updateMap(lat, lon, zoom = 16) {
+        function updateMap(lat, lon, zoom = null) {
+            if (zoom !== null) currentZoom = zoom;
             currentLat = lat;
             currentLon = lon;
-            const url = `https://embed.waze.com/iframe?zoom=${zoom}&lat=${lat}&lon=${lon}&pin=1`;
+            
+            const url = `https://embed.waze.com/iframe?zoom=${currentZoom}&lat=${lat}&lon=${lon}&pin=1`;
             iframe.src = url;
         }
 
         function getCurrentLocation() {
-            const statusEl = document.getElementById('follow-text'); // reuse for feedback
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
-                        updateMap(pos.coords.latitude, pos.coords.longitude, 17);
+                        updateMap(pos.coords.latitude, pos.coords.longitude); // uses persisted zoom
                     },
                     (err) => {
                         console.log('Geolocation error:', err);
-                        alert('Location access denied or unavailable. Map will use last known position.');
+                        alert('Location access unavailable. Using last known position.');
                     },
                     { enableHighAccuracy: true, timeout: 10000 }
                 );
@@ -117,30 +119,23 @@
             watchId = navigator.geolocation.watchPosition(
                 (pos) => {
                     const now = Date.now();
-                    if (now - lastUpdateTime < 3000) return; // throttle to ~every 3+ seconds
+                    if (now - lastUpdateTime < 4000) return; // throttle ~every 4 seconds
                     
                     const lat = pos.coords.latitude;
                     const lon = pos.coords.longitude;
                     const accuracy = pos.coords.accuracy || 999;
                     
-                    // Only recenter if reasonably accurate and moved a bit
                     if (accuracy < 100 && 
                         (Math.abs(lat - currentLat) > 0.0005 || Math.abs(lon - currentLon) > 0.0005)) {
-                        updateMap(lat, lon, 17);
+                        updateMap(lat, lon); // uses persisted zoom
                         lastUpdateTime = now;
                     }
                 },
                 (err) => {
-                    console.log('Watch position error:', err);
-                    if (followEnabled) {
-                        document.getElementById('follow-text').textContent = 'Follow: Location unavailable';
-                    }
+                    console.log('Watch error:', err);
+                    if (followEnabled) document.getElementById('follow-text').textContent = 'Follow: GPS unavailable';
                 },
-                { 
-                    enableHighAccuracy: true, 
-                    maximumAge: 5000, 
-                    timeout: 10000 
-                }
+                { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
             );
         }
 
@@ -168,10 +163,8 @@
 
         // Initialize
         window.onload = () => {
-            // Initial load with default or quick GPS
-            getCurrentLocation();
+            getCurrentLocation(); // Try GPS first (uses default zoom=16)
             
-            // Fallback after a short delay
             setTimeout(() => {
                 if (!iframe.src) {
                     updateMap(currentLat, currentLon, 14);
@@ -179,7 +172,6 @@
             }, 1500);
         };
 
-        // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
             if (watchId) navigator.geolocation.clearWatch(watchId);
         });
