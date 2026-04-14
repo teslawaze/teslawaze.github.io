@@ -61,27 +61,59 @@
 
     <script>
         const iframe = document.getElementById('waze-iframe');
-        let currentLat = 27.755;   // Default near Wimauma, FL
+        let currentLat = 27.755;
         let currentLon = -82.300;
-        let currentZoom = 16;      // ← Persisted zoom level (you can change default here)
+        let currentZoom = 14;           // Default zoom level
         let watchId = null;
         let followEnabled = false;
-        let lastUpdateTime = 0;
+        let lastUpdateLat = 27.755;
+        let lastUpdateLon = -82.300;
+        const MILE_IN_METERS = 1609;    // ~1 mile threshold
+
+        // Haversine distance in meters
+        function getDistanceInMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Earth radius in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        // Safely get current zoom from iframe
+        function getCurrentZoomFromIframe() {
+            try {
+                const src = iframe.src;
+                if (src) {
+                    const match = src.match(/zoom=(\d+)/);
+                    if (match && match[1]) return parseInt(match[1], 10);
+                }
+            } catch (e) {}
+            return currentZoom;
+        }
 
         function updateMap(lat, lon, zoom = null) {
-            if (zoom !== null) currentZoom = zoom;
+            if (zoom === null) zoom = getCurrentZoomFromIframe();
+            currentZoom = Math.max(3, Math.min(17, zoom));
             currentLat = lat;
             currentLon = lon;
             
             const url = `https://embed.waze.com/iframe?zoom=${currentZoom}&lat=${lat}&lon=${lon}&pin=1`;
             iframe.src = url;
+            
+            // Update last position for distance tracking
+            lastUpdateLat = lat;
+            lastUpdateLon = lon;
         }
 
         function getCurrentLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
-                        updateMap(pos.coords.latitude, pos.coords.longitude); // uses persisted zoom
+                        const zoomToUse = getCurrentZoomFromIframe();
+                        updateMap(pos.coords.latitude, pos.coords.longitude, zoomToUse);
                     },
                     (err) => {
                         console.log('Geolocation error:', err);
@@ -102,7 +134,7 @@
                 toggleEl.classList.add('toggle-on');
                 dotEl.classList.remove('bg-red-500');
                 dotEl.classList.add('bg-lime-400', 'animate-pulse');
-                textEl.textContent = 'Follow Vehicle: ON';
+                textEl.textContent = 'Follow Vehicle: ON (1 mile)';
                 startWatchingPosition();
             } else {
                 toggleEl.classList.remove('toggle-on');
@@ -118,24 +150,28 @@
             
             watchId = navigator.geolocation.watchPosition(
                 (pos) => {
-                    const now = Date.now();
-                    if (now - lastUpdateTime < 4000) return; // throttle ~every 4 seconds
-                    
                     const lat = pos.coords.latitude;
                     const lon = pos.coords.longitude;
                     const accuracy = pos.coords.accuracy || 999;
                     
-                    if (accuracy < 100 && 
-                        (Math.abs(lat - currentLat) > 0.0005 || Math.abs(lon - currentLon) > 0.0005)) {
-                        updateMap(lat, lon); // uses persisted zoom
-                        lastUpdateTime = now;
+                    if (accuracy > 150) return; // skip low-accuracy updates
+                    
+                    const distanceTraveled = getDistanceInMeters(lastUpdateLat, lastUpdateLon, lat, lon);
+                    
+                    if (distanceTraveled >= MILE_IN_METERS) {
+                        const zoomToUse = getCurrentZoomFromIframe();
+                        updateMap(lat, lon, zoomToUse);
                     }
                 },
                 (err) => {
                     console.log('Watch error:', err);
                     if (followEnabled) document.getElementById('follow-text').textContent = 'Follow: GPS unavailable';
                 },
-                { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+                { 
+                    enableHighAccuracy: true, 
+                    maximumAge: 10000, 
+                    timeout: 15000 
+                }
             );
         }
 
@@ -163,7 +199,7 @@
 
         // Initialize
         window.onload = () => {
-            getCurrentLocation(); // Try GPS first (uses default zoom=16)
+            getCurrentLocation();
             
             setTimeout(() => {
                 if (!iframe.src) {
