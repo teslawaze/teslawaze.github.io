@@ -3,14 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CyberWaze • Waze for Tesla</title>
+    <title>TeslaWaze • Waze for Tesla</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { margin: 0; padding: 0; background: #111; color: white; font-family: system-ui; overflow: hidden; }
-        #header { background: #1f2937; }
-        #waze-iframe { width: 100%; height: calc(100vh - 68px); border: none; }
+        #header { 
+            background: #1f2937;
+            z-index: 10;
+            position: relative; 
+        }
+        #map-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 68px);
+        }
+        #waze-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+        #dark-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            opacity: 0.35;       /* Adjust this value (0.2 = lighter, 0.5 = darker) */
+            pointer-events: none; /* Allows tapping on the map */
+            z-index: 5;
+            transition: opacity 0.2s ease;
+        }
         button, .toggle { transition: all 0.2s; }
         .toggle-on { background-color: #84cc16; color: black; }
+        input[type="range"] {
+            accent-color: #84cc16;
+        }
     </style>
 </head>
 <body>
@@ -19,12 +48,20 @@
         <div class="flex items-center gap-x-3">
             <div class="text-4xl">⚡</div>
             <div>
-                <h1 class="text-3xl font-bold tracking-tighter text-lime-400">CYBERWAZE</h1>
+                <h1 class="text-3xl font-bold tracking-tighter text-lime-400">TESLAWAZE</h1>
                 <p class="text-xs text-gray-400 -mt-1">Live Traffic • Powered by Waze</p>
             </div>
         </div>
 
         <div class="flex items-center gap-x-4 flex-wrap">
+            <!-- Dark Mode Slider -->
+            <div class="flex items-center gap-x-2 bg-gray-800 px-5 py-2.5 rounded-3xl">
+                <span class="text-sm font-medium text-gray-300 whitespace-nowrap">Dark Mode</span>
+                <input type="range" id="dark-slider" 
+                       min="0" max="70" value="35"
+                       class="w-20 accent-lime-400 cursor-pointer">
+                <span id="dark-value" class="text-xs font-mono text-lime-400 w-8">35%</span>
+            </div>
             <!-- Follow Toggle -->
             <div onclick="toggleFollow()" id="follow-toggle"
                  class="flex items-center gap-x-2 bg-gray-700 hover:bg-gray-600 px-5 py-2 rounded-3xl cursor-pointer text-sm font-medium select-none">
@@ -54,18 +91,23 @@
             <!-- Donate Button  -->
             <button onclick="window.open('https://www.buymeacoffee.com/teslawaze', '_blank')" 
                     class="flex items-center gap-x-2 bg-amber-400 hover:bg-amber-300 text-black font-semibold px-6 py-3 rounded-3xl text-lg">
-                ☕ Support CyberWaze
+                ☕ Support TeslaWaze
             </button>
-            <!-- <button onclick="toggleFullscreen()" class="px-5 py-3 hover:bg-gray-700 rounded-3xl">⛶ FULLSCREEN</button>
-            <a href="https://www.waze.com" target="_blank" class="text-gray-400 hover:text-white">Waze.com</a> -->
         </div>
     </div>
 
     <!-- Waze Live Map -->
+    <div id="map-container">
     <iframe id="waze-iframe" allowfullscreen></iframe>
+        <iframe id="waze-iframe" allowfullscreen></iframe>
+        <div id="dark-overlay"></div>
+    </div>
 
     <script>
         const iframe = document.getElementById('waze-iframe');
+        const overlay = document.getElementById('dark-overlay');
+        const slider = document.getElementById('dark-slider');
+        const valueDisplay = document.getElementById('dark-value');
         let currentLat = 27.755;
         let currentLon = -82.300;
         let currentZoom = 14;           // Default zoom level
@@ -73,7 +115,33 @@
         let followEnabled = false;
         let lastUpdateLat = 27.755;
         let lastUpdateLon = -82.300;
+        let darkOverlayEnabled = true;
         const MILE_IN_METERS = 1609;    // ~1 mile threshold
+
+        // Load saved overlay preference
+        function loadDarkModePreference() {
+            const saved = localStorage.getItem('teslawaze_dark_opacity');
+            if (saved !== null) {
+                slider.value = saved;
+            }
+            updateOverlay();
+        }
+
+        function saveDarkModePreference() {
+            localStorage.setItem('teslawaze_dark_opacity', slider.value);
+        }
+
+        function updateOverlay() {
+            const opacity = parseFloat(slider.value) / 100;
+            overlay.style.opacity = opacity;
+            valueDisplay.textContent = slider.value + '%';
+        }
+
+        function toggleDarkOverlay() {
+            darkOverlayEnabled = !darkOverlayEnabled;
+            updateOverlayUI();
+            saveOverlayPreference();
+        }
 
         // Haversine distance in meters
         function getDistanceInMeters(lat1, lon1, lat2, lon2) {
@@ -204,6 +272,14 @@
 
         // Initialize
         window.onload = () => {
+            loadDarkModePreference();
+            
+            // Live slider update
+            slider.addEventListener('input', () => {
+                updateOverlay();
+                saveDarkModePreference();
+            });
+            
             getCurrentLocation();
 
             toggleFollow();
