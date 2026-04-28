@@ -58,42 +58,44 @@
 
         <div class="flex items-center gap-x-4 flex-wrap">
             <!-- Dark Mode Slider -->
-            <div class="flex items-center gap-x-2 bg-gray-800 px-5 py-2.5 rounded-3xl">
+            <div class="flex items-center gap-x-2 bg-gray-800 px-4 py-2 rounded-3xl">
                 <span class="text-sm font-medium text-gray-300 whitespace-nowrap">Dark Mode</span>
                 <input type="range" id="dark-slider" 
                        min="0" max="70" value="35"
                        class="w-20 accent-lime-400 cursor-pointer">
                 <span id="dark-value" class="text-xs font-mono text-lime-400 w-8">35%</span>
             </div>
-            <!-- Follow Toggle -->
+            <!-- Follow Toggle - Smaller -->
             <div onclick="toggleFollow()" id="follow-toggle"
-                 class="flex items-center gap-x-2 bg-gray-700 hover:bg-gray-600 px-5 py-2 rounded-3xl cursor-pointer text-sm font-medium select-none">
+                 class="flex items-center gap-x-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm font-medium select-none rounded-3xl cursor-pointer">
                 <div id="follow-dot" class="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span id="follow-text">Follow Vehicle: OFF</span>
+                <span id="follow-text">Follow: ON (1 mi)</span>
             </div>
 
             <!-- My Location -->
             <button onclick="getCurrentLocation()" 
-                    class="flex items-center gap-x-3 bg-lime-400 hover:bg-lime-300 text-black font-semibold px-6 py-3 rounded-3xl text-lg">
+                    class="flex items-center gap-x-3 bg-lime-400 hover:bg-lime-300 text-black font-semibold px-4 py-2 rounded-3xl text-lg">
                 📍 MY LOCATION
             </button>
 
-            <!-- Search -->
-            <div class="flex">
+            <!-- Search - Smaller -->
+            <!-- <div class="flex">
                 <input id="search-input" 
                        onkeydown="if(event.key==='Enter') searchDestination()"
                        type="text" 
-                       placeholder="Where to? (address, place, or city)"
-                       class="bg-gray-800 border border-gray-600 focus:border-lime-400 w-80 px-6 py-3 rounded-l-3xl text-lg outline-none">
+                       placeholder="Where to?"
+                       class="bg-gray-800 border border-gray-600 focus:border-lime-400 w-64 px-5 py-2.5 rounded-l-3xl text-base outline-none">
                 <button onclick="searchDestination()" 
-                        class="bg-white hover:bg-gray-100 text-black font-semibold px-8 rounded-r-3xl text-lg">GO</button>
-            </div>
+                        class="bg-white hover:bg-gray-100 text-black font-semibold px-6 rounded-r-3xl text-base">
+                    GO
+                </button>
+            </div> -->
         </div>
 
         <div class="flex items-center gap-x-4 text-sm">
             <!-- Donate Button  -->
             <button onclick="window.open('https://www.buymeacoffee.com/teslawaze', '_blank')" 
-                    class="flex items-center gap-x-2 bg-amber-400 hover:bg-amber-300 text-black font-semibold px-6 py-3 rounded-3xl text-lg">
+                    class="flex items-center gap-x-2 bg-amber-400 hover:bg-amber-300 text-black font-semibold px-4 py-2 rounded-3xl text-lg">
                 ☕ Support TeslaWaze
             </button>
         </div>
