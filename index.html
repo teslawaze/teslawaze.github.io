@@ -39,7 +39,7 @@
             transition: opacity 0.2s ease;
         }
         button, .toggle { transition: all 0.2s; }
-        .toggle-on { background-color: #84cc16; color: black; }
+        .toggle-on { background-color: #84cc16; color: white; }
         input[type="range"] {
             accent-color: #84cc16;
         }
@@ -49,7 +49,10 @@
     <!-- Header -->
     <div id="header" class="px-6 py-4 flex items-center justify-between shadow-2xl flex-wrap gap-3">
         <div class="flex items-center gap-x-3">
-            <div class="text-4xl">⚡</div>
+            <!-- <div class="text-4xl">⚡</div> -->
+            <!-- Your Lightning Bolt Image -->
+            <img src="lightning.png" alt="Lightning" 
+                 class="w-10 h-10 object-contain">
             <div>
                 <h1 class="text-3xl font-bold tracking-tighter text-lime-400">TESLAWAZE</h1>
                 <p class="text-xs text-gray-400 -mt-1">Live Traffic • Powered by Waze</p>
@@ -212,13 +215,13 @@
                 toggleEl.classList.add('toggle-on');
                 dotEl.classList.remove('bg-red-500');
                 dotEl.classList.add('bg-lime-400', 'animate-pulse');
-                textEl.textContent = 'Follow Vehicle: ON (1 mile)';
+                textEl.textContent = 'Follow: ON (1 mi)';
                 startWatchingPosition();
             } else {
                 toggleEl.classList.remove('toggle-on');
                 dotEl.classList.remove('bg-lime-400', 'animate-pulse');
                 dotEl.classList.add('bg-red-500');
-                textEl.textContent = 'Follow Vehicle: OFF';
+                textEl.textContent = 'Follow: OFF';
                 stopWatchingPosition();
             }
         }
