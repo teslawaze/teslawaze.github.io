@@ -68,11 +68,23 @@
                        class="w-20 accent-lime-400 cursor-pointer">
                 <span id="dark-value" class="text-xs font-mono text-lime-400 w-8">35%</span>
             </div>
+            <!-- Follow Distance Selector -->
+            <div class="flex items-center gap-x-2 bg-gray-700 px-4 py-2 rounded-3xl">
+                <span class="text-sm text-gray-300">Refresh every</span>
+                <select id="follow-distance" onchange="changeFollowDistance()"
+                        class="bg-gray-800 text-white rounded-2xl px-3 py-1 text-sm font-medium outline-none">
+                    <option value="0.25" selected>¼ mile</option>
+                    <option value="0.5">½ mile</option>
+                    <option value="0.75">¾ mile</option>
+                    <option value="1">1 mile</option>
+                    <option value="2">2 miles</option>
+                </select>
+            </div>
             <!-- Follow Toggle - Smaller -->
             <div onclick="toggleFollow()" id="follow-toggle"
                  class="flex items-center gap-x-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm font-medium select-none rounded-3xl cursor-pointer">
                 <div id="follow-dot" class="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span id="follow-text">Follow: ON (1 mi)</span>
+                <span id="follow-text">Follow: ON</span>
             </div>
 
             <!-- My Location -->
@@ -116,6 +128,7 @@
         const overlay = document.getElementById('dark-overlay');
         const slider = document.getElementById('dark-slider');
         const valueDisplay = document.getElementById('dark-value');
+        const distanceSelect = document.getElementById('follow-distance');
         let currentLat = 27.755;
         let currentLon = -82.300;
         let currentZoom = 14;           // Default zoom level
@@ -123,8 +136,14 @@
         let followEnabled = false;
         let lastUpdateLat = 27.755;
         let lastUpdateLon = -82.300;
+        let followDistanceMiles = 0.25;     // Default = 1/4 mile
+
+        const MILE_IN_METERS = 1609.34;
+
+        function getFollowDistanceInMeters() {
+            return followDistanceMiles * MILE_IN_METERS;
+        }
         let darkOverlayEnabled = true;
-        const MILE_IN_METERS = 1609;    // ~1 mile threshold
 
         // Load saved overlay preference
         function loadDarkModePreference() {
@@ -205,6 +224,10 @@
             }
         }
 
+        function changeFollowDistance() {
+            followDistanceMiles = parseFloat(distanceSelect.value);
+        }
+
         function toggleFollow() {
             followEnabled = !followEnabled;
             const toggleEl = document.getElementById('follow-toggle');
@@ -215,7 +238,7 @@
                 toggleEl.classList.add('toggle-on');
                 dotEl.classList.remove('bg-red-500');
                 dotEl.classList.add('bg-lime-400', 'animate-pulse');
-                textEl.textContent = 'Follow: ON (1 mi)';
+                textEl.textContent = 'Follow: ON';
                 startWatchingPosition();
             } else {
                 toggleEl.classList.remove('toggle-on');
@@ -239,7 +262,7 @@
                     
                     const distanceTraveled = getDistanceInMeters(lastUpdateLat, lastUpdateLon, lat, lon);
                     
-                    if (distanceTraveled >= MILE_IN_METERS) {
+                    if (distanceTraveled >= getFollowDistanceInMeters()) {
                         const zoomToUse = getCurrentZoomFromIframe();
                         updateMap(lat, lon, zoomToUse);
                     }
@@ -289,7 +312,7 @@
             });
             
             getCurrentLocation();
-
+            
             toggleFollow();
             
             setTimeout(() => {
