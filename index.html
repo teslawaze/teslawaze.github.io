@@ -40,6 +40,14 @@
         }
         button, .toggle { transition: all 0.2s; }
         .toggle-on { background-color: #84cc16; color: white; }
+        .follow-dist-btn {
+            transition: all 0.2s;
+        }
+        .follow-dist-btn.active {
+            background-color: #84cc16;
+            color: black;
+            font-weight: 600;
+        }
         input[type="range"] {
             accent-color: #84cc16;
         }
@@ -68,23 +76,26 @@
                        class="w-20 accent-lime-400 cursor-pointer">
                 <span id="dark-value" class="text-xs font-mono text-lime-400 w-8">35%</span>
             </div>
-            <!-- Follow Distance Selector -->
-            <div class="flex items-center gap-x-2 bg-gray-700 px-4 py-2 rounded-3xl">
-                <span class="text-sm text-gray-300">Refresh every</span>
-                <select id="follow-distance" onchange="changeFollowDistance()"
-                        class="bg-gray-800 text-white rounded-2xl px-3 py-1 text-sm font-medium outline-none">
-                    <option value="0.25" selected>¼ mile</option>
-                    <option value="0.5">½ mile</option>
-                    <option value="0.75">¾ mile</option>
-                    <option value="1">1 mile</option>
-                    <option value="2">2 miles</option>
-                </select>
-            </div>
-            <!-- Follow Toggle - Smaller -->
-            <div onclick="toggleFollow()" id="follow-toggle"
-                 class="flex items-center gap-x-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm font-medium select-none rounded-3xl cursor-pointer">
-                <div id="follow-dot" class="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span id="follow-text">Follow: ON</span>
+            <!-- Follow Distance Section with Integrated Toggle -->
+            <div class="flex items-center bg-gray-700 rounded-3xl p-1 gap-1">
+                <!-- Follow Toggle Switch -->
+                <div onclick="toggleFollow()" id="follow-toggle"
+                     class="flex items-center gap-x-2 bg-gray-800 hover:bg-gray-600 px-4 py-2 rounded-3xl cursor-pointer text-sm font-medium select-none">
+                    <div id="follow-dot" class="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span id="follow-text" class="w-14">Follow</span>
+                </div>
+
+                <!-- Distance Buttons -->
+                <button onclick="setFollowDistance(0.25)" id="dist-025"
+                        class="follow-dist-btn active px-4 py-2 text-sm font-medium rounded-3xl">¼ mi</button>
+                <button onclick="setFollowDistance(0.5)" id="dist-05"
+                        class="follow-dist-btn px-4 py-2 text-sm font-medium rounded-3xl">½ mi</button>
+                <button onclick="setFollowDistance(0.75)" id="dist-075"
+                        class="follow-dist-btn px-4 py-2 text-sm font-medium rounded-3xl">¾ mi</button>
+                <button onclick="setFollowDistance(1)" id="dist-1"
+                        class="follow-dist-btn px-4 py-2 text-sm font-medium rounded-3xl">1 mi</button>
+                <button onclick="setFollowDistance(2)" id="dist-2"
+                        class="follow-dist-btn px-4 py-2 text-sm font-medium rounded-3xl">2 mi</button>
             </div>
 
             <!-- My Location -->
@@ -143,6 +154,19 @@
         function getFollowDistanceInMeters() {
             return followDistanceMiles * MILE_IN_METERS;
         }
+
+        function setFollowDistance(miles) {
+            followDistanceMiles = miles;
+            
+            // Update active button styling
+            document.querySelectorAll('.follow-dist-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (parseFloat(btn.getAttribute('onclick').match(/\d+\.?\d*/)[0]) === miles) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
         let darkOverlayEnabled = true;
 
         // Load saved overlay preference
@@ -238,13 +262,13 @@
                 toggleEl.classList.add('toggle-on');
                 dotEl.classList.remove('bg-red-500');
                 dotEl.classList.add('bg-lime-400', 'animate-pulse');
-                textEl.textContent = 'Follow: ON';
+                textEl.textContent = 'ON';
                 startWatchingPosition();
             } else {
                 toggleEl.classList.remove('toggle-on');
                 dotEl.classList.remove('bg-lime-400', 'animate-pulse');
                 dotEl.classList.add('bg-red-500');
-                textEl.textContent = 'Follow: OFF';
+                textEl.textContent = 'OFF';
                 stopWatchingPosition();
             }
         }
@@ -269,7 +293,7 @@
                 },
                 (err) => {
                     console.log('Watch error:', err);
-                    if (followEnabled) document.getElementById('follow-text').textContent = 'Follow: GPS unavailable';
+                    if (followEnabled) document.getElementById('follow-text').textContent = 'No GPS';
                 },
                 { 
                     enableHighAccuracy: true, 
