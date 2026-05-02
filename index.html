@@ -73,7 +73,7 @@
                 <span class="text-sm font-medium text-gray-300 whitespace-nowrap">Dark Mode</span>
                 <input type="range" id="dark-slider" 
                        min="0" max="70" value="35"
-                       class="w-20 accent-lime-400 cursor-pointer">
+                       class="w-40 accent-lime-400 cursor-pointer">
                 <span id="dark-value" class="text-xs font-mono text-lime-400 w-8">35%</span>
             </div>
             <!-- Follow Distance Section with Integrated Toggle -->
@@ -90,8 +90,6 @@
                         class="follow-dist-btn active px-4 py-2 text-sm font-medium rounded-3xl">¼ mi</button>
                 <button onclick="setFollowDistance(0.5)" id="dist-05"
                         class="follow-dist-btn px-4 py-2 text-sm font-medium rounded-3xl">½ mi</button>
-                <button onclick="setFollowDistance(0.75)" id="dist-075"
-                        class="follow-dist-btn px-4 py-2 text-sm font-medium rounded-3xl">¾ mi</button>
                 <button onclick="setFollowDistance(1)" id="dist-1"
                         class="follow-dist-btn px-4 py-2 text-sm font-medium rounded-3xl">1 mi</button>
                 <button onclick="setFollowDistance(2)" id="dist-2"
@@ -100,7 +98,7 @@
 
             <!-- My Location -->
             <button onclick="getCurrentLocation()" 
-                    class="flex items-center gap-x-3 bg-lime-400 hover:bg-lime-300 text-black font-semibold px-4 py-2 rounded-3xl text-lg">
+                    class="flex items-center gap-x-3 bg-lime-400 hover:bg-lime-300 text-black font-semibold px-4 py-2 rounded-3xl text-base">
                 📍 MY LOCATION
             </button>
 
@@ -121,7 +119,7 @@
         <div class="flex items-center gap-x-4 text-sm">
             <!-- Donate Button  -->
             <button onclick="window.open('https://www.buymeacoffee.com/teslawaze', '_blank')" 
-                    class="flex items-center gap-x-2 bg-amber-400 hover:bg-amber-300 text-black font-semibold px-4 py-2 rounded-3xl text-lg">
+                    class="flex items-center gap-x-2 bg-amber-400 hover:bg-amber-300 text-black font-semibold px-4 py-2 rounded-3xl text-base">
                 ☕ Support TeslaWaze
             </button>
         </div>
